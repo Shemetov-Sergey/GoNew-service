@@ -89,7 +89,7 @@ func (pg *Storage) OneNews(newsId int64) (*pb.Post, error) {
 
 func (pg *Storage) FilterNews(filterTitle string) ([]*pb.Post, error) {
 	queryParameter := "%" + filterTitle + "%"
-	query := `SELECT id, title, content, pub_time, link, source_link FROM posts WHERE title LIKE $1;`
+	query := `SELECT id, title, content, pub_time, link, source_link FROM posts WHERE title ILIKE $1;`
 	rows, rowsErr := pg.Db.Query(context.Background(), query, queryParameter)
 
 	if rowsErr != nil {

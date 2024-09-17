@@ -9,6 +9,7 @@ service GoNewsService {
   rpc NewsFullDetailed(OneNewsRequest) returns (OnePostResponse) {}
   rpc NewsShortDetailed(OneNewsRequest) returns (OnePostResponse) {}
   rpc FilterNews(FilterNewsRequest) returns (PostsResponse) {}
+  rpc ListNews(ListPostsRequest) returns (ListPostsResponse) {}
 }
 
 message PostsRequest {
@@ -42,4 +43,24 @@ message PostsResponse {
   int64 status = 1;
   string error = 2;
   repeated Post posts = 3;
+  }
+
+message Pagination {
+  int32 pages = 1;
+  int32 currentPage = 2;
+  int32 postsOnPage = 3;
+}
+
+message ListPostsRequest {
+  int64 newsCountGet = 1;
+  int64 user_id = 2;
+  int32 page_size = 3;
+  int32 page = 4;
+}
+
+message ListPostsResponse {
+  int64 status = 1;
+  string error = 2;
+  Pagination paginationInfo = 3;
+  repeated Post posts = 4;
 }

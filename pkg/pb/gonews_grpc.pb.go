@@ -26,6 +26,7 @@ type GoNewsServiceClient interface {
 	NewsFullDetailed(ctx context.Context, in *OneNewsRequest, opts ...grpc.CallOption) (*OnePostResponse, error)
 	NewsShortDetailed(ctx context.Context, in *OneNewsRequest, opts ...grpc.CallOption) (*OnePostResponse, error)
 	FilterNews(ctx context.Context, in *FilterNewsRequest, opts ...grpc.CallOption) (*PostsResponse, error)
+	ListNews(ctx context.Context, in *ListPostsRequest, opts ...grpc.CallOption) (*ListPostsResponse, error)
 }
 
 type goNewsServiceClient struct {
@@ -72,6 +73,15 @@ func (c *goNewsServiceClient) FilterNews(ctx context.Context, in *FilterNewsRequ
 	return out, nil
 }
 
+func (c *goNewsServiceClient) ListNews(ctx context.Context, in *ListPostsRequest, opts ...grpc.CallOption) (*ListPostsResponse, error) {
+	out := new(ListPostsResponse)
+	err := c.cc.Invoke(ctx, "/gonews.GoNewsService/ListNews", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GoNewsServiceServer is the server API for GoNewsService service.
 // All implementations should embed UnimplementedGoNewsServiceServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type GoNewsServiceServer interface {
 	NewsFullDetailed(context.Context, *OneNewsRequest) (*OnePostResponse, error)
 	NewsShortDetailed(context.Context, *OneNewsRequest) (*OnePostResponse, error)
 	FilterNews(context.Context, *FilterNewsRequest) (*PostsResponse, error)
+	ListNews(context.Context, *ListPostsRequest) (*ListPostsResponse, error)
 }
 
 // UnimplementedGoNewsServiceServer should be embedded to have forward compatible implementations.
@@ -97,6 +108,9 @@ func (UnimplementedGoNewsServiceServer) NewsShortDetailed(context.Context, *OneN
 }
 func (UnimplementedGoNewsServiceServer) FilterNews(context.Context, *FilterNewsRequest) (*PostsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FilterNews not implemented")
+}
+func (UnimplementedGoNewsServiceServer) ListNews(context.Context, *ListPostsRequest) (*ListPostsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListNews not implemented")
 }
 
 // UnsafeGoNewsServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -182,6 +196,24 @@ func _GoNewsService_FilterNews_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GoNewsService_ListNews_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPostsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GoNewsServiceServer).ListNews(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gonews.GoNewsService/ListNews",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GoNewsServiceServer).ListNews(ctx, req.(*ListPostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GoNewsService_ServiceDesc is the grpc.ServiceDesc for GoNewsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -204,6 +236,10 @@ var GoNewsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FilterNews",
 			Handler:    _GoNewsService_FilterNews_Handler,
+		},
+		{
+			MethodName: "ListNews",
+			Handler:    _GoNewsService_ListNews_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

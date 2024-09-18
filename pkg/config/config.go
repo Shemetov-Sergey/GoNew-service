@@ -6,6 +6,7 @@ type Config struct {
 	Port          string `mapstructure:"PORT"`
 	DBUrl         string `mapstructure:"DB_URL"`
 	CommentSvcUrl string `mapstructure:"COMMENT_SVC_URL"`
+	GoNewsSvcUrl  string `mapstructure:"GONEWS_SVC_URL"`
 }
 
 func LoadConfig() (config Config, err error) {

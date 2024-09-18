@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/middleware"
 	"github.com/Shemetov-Sergey/GoNew-service/pkg/pb/comment"
 
 	"github.com/Shemetov-Sergey/GoNew-service/pkg/config"
@@ -15,7 +16,7 @@ type ServiceClient struct {
 
 func InitServiceClient(c *config.Config) comment.CommentServiceClient {
 	// using WithInsecure() because no SSL running
-	cc, err := grpc.Dial(c.CommentSvcUrl, grpc.WithInsecure())
+	cc, err := grpc.Dial(c.CommentSvcUrl, grpc.WithInsecure(), middleware.WithClientUnaryInterceptor())
 
 	if err != nil {
 		fmt.Println("Could not connect:", err)

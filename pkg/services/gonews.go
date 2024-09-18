@@ -96,35 +96,35 @@ func (s *Server) FilterNews(ctx context.Context, req *gonews.FilterNewsRequest) 
 
 	var postsToShow []*gonews.Post
 	var paginationInfo *gonews.Pagination
-	var pageSize int32
-	var page int32
 
-	if req.PageSize == 0 {
-		pageSize = 1
+	if int64(req.PageSize*req.Page) > int64(len(posts)) {
+		// Проверка для уточнения последняя ли это страница
+		if int64(len(posts))%int64(req.PageSize*(req.Page-1)) < 10 {
+			postsOnPage := int32(len(posts)) % (req.PageSize * (req.Page - 1))
+			basePages := int32(len(posts)) / req.PageSize
+			lastPage := 0
+			if int32(len(posts))%req.PageSize > 0 {
+				lastPage++
+			}
+			pages := basePages + int32(lastPage)
+			currentOffset := (req.Page - 1) * req.PageSize
+			paginationInfo = cache.NewsPaginationInfo(pages, req.Page, postsOnPage)
+			postsToShow = posts[currentOffset : currentOffset+postsOnPage]
+		} else {
+			pages := 1
+			paginationInfo = cache.NewsPaginationInfo(int32(pages), 1, int32(len(posts)))
+			postsToShow = posts[0 : int64(len(posts))-1]
+		}
 	} else {
-		pageSize = req.PageSize
-	}
-
-	if req.Page > 0 {
-		page = req.Page
-	} else {
-		page = 1
-	}
-
-	if int64(pageSize*page) > int64(len(posts)) {
-		pages := 1
-		paginationInfo = cache.NewsPaginationInfo(int32(pages), 1, int32(len(posts)))
-		postsToShow = posts[0 : int64(len(posts))-1]
-	} else {
-		basePages := int32(len(posts)) / pageSize
+		basePages := int32(len(posts)) / req.PageSize
 		lastPage := 0
-		if int32(len(posts))%pageSize > 0 {
+		if int32(len(posts))%req.PageSize > 0 {
 			lastPage++
 		}
 		pages := basePages + int32(lastPage)
-		currentOffset := (page - 1) * pageSize
-		paginationInfo = cache.NewsPaginationInfo(pages, page, pageSize)
-		postsToShow = posts[currentOffset : currentOffset+pageSize]
+		currentOffset := (req.Page - 1) * req.PageSize
+		paginationInfo = cache.NewsPaginationInfo(pages, req.Page, req.PageSize)
+		postsToShow = posts[currentOffset : currentOffset+req.PageSize]
 	}
 
 	return &gonews.ListPostsResponse{
@@ -170,9 +170,23 @@ func (s *Server) ListNews(ctx context.Context, req *gonews.ListPostsRequest) (*g
 	var paginationInfo *gonews.Pagination
 
 	if int64(req.PageSize*req.Page) > req.NewsCountGet {
-		pages := 1
-		paginationInfo = cache.NewsPaginationInfo(int32(pages), 1, int32(req.NewsCountGet))
-		postsToShow = posts[0 : req.NewsCountGet-1]
+		// Проверка для уточнения последняя ли это страница
+		if int64(len(posts))%int64(req.PageSize*(req.Page-1)) < 10 {
+			postsOnPage := int32(len(posts)) % (req.PageSize * (req.Page - 1))
+			basePages := int32(len(posts)) / req.PageSize
+			lastPage := 0
+			if int32(len(posts))%req.PageSize > 0 {
+				lastPage++
+			}
+			pages := basePages + int32(lastPage)
+			currentOffset := (req.Page - 1) * req.PageSize
+			paginationInfo = cache.NewsPaginationInfo(pages, req.Page, postsOnPage)
+			postsToShow = posts[currentOffset : currentOffset+postsOnPage]
+		} else {
+			pages := 1
+			paginationInfo = cache.NewsPaginationInfo(int32(pages), 1, int32(len(posts)))
+			postsToShow = posts[0 : int64(len(posts))-1]
+		}
 	} else {
 		basePages := int32(len(posts)) / req.PageSize
 		lastPage := 0

@@ -3,6 +3,7 @@ package main
 import (
 	"GoNew-service/pkg/cache"
 	"GoNew-service/pkg/config"
+	"GoNew-service/pkg/middleware"
 	"GoNew-service/pkg/pb"
 	"GoNew-service/pkg/rss"
 	"GoNew-service/pkg/services"
@@ -70,7 +71,11 @@ func main() {
 
 	fmt.Println("Auth Svc on", c.Port)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			middleware.LoggingInterceptor,
+		),
+	)
 
 	pb.RegisterGoNewsServiceServer(grpcServer, &s)
 

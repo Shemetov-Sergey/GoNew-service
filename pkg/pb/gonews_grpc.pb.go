@@ -25,7 +25,7 @@ type GoNewsServiceClient interface {
 	Posts(ctx context.Context, in *PostsRequest, opts ...grpc.CallOption) (*PostsResponse, error)
 	NewsFullDetailed(ctx context.Context, in *OneNewsRequest, opts ...grpc.CallOption) (*OnePostResponse, error)
 	NewsShortDetailed(ctx context.Context, in *OneNewsRequest, opts ...grpc.CallOption) (*OnePostResponse, error)
-	FilterNews(ctx context.Context, in *FilterNewsRequest, opts ...grpc.CallOption) (*PostsResponse, error)
+	FilterNews(ctx context.Context, in *FilterNewsRequest, opts ...grpc.CallOption) (*ListPostsResponse, error)
 	ListNews(ctx context.Context, in *ListPostsRequest, opts ...grpc.CallOption) (*ListPostsResponse, error)
 }
 
@@ -64,8 +64,8 @@ func (c *goNewsServiceClient) NewsShortDetailed(ctx context.Context, in *OneNews
 	return out, nil
 }
 
-func (c *goNewsServiceClient) FilterNews(ctx context.Context, in *FilterNewsRequest, opts ...grpc.CallOption) (*PostsResponse, error) {
-	out := new(PostsResponse)
+func (c *goNewsServiceClient) FilterNews(ctx context.Context, in *FilterNewsRequest, opts ...grpc.CallOption) (*ListPostsResponse, error) {
+	out := new(ListPostsResponse)
 	err := c.cc.Invoke(ctx, "/gonews.GoNewsService/FilterNews", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ type GoNewsServiceServer interface {
 	Posts(context.Context, *PostsRequest) (*PostsResponse, error)
 	NewsFullDetailed(context.Context, *OneNewsRequest) (*OnePostResponse, error)
 	NewsShortDetailed(context.Context, *OneNewsRequest) (*OnePostResponse, error)
-	FilterNews(context.Context, *FilterNewsRequest) (*PostsResponse, error)
+	FilterNews(context.Context, *FilterNewsRequest) (*ListPostsResponse, error)
 	ListNews(context.Context, *ListPostsRequest) (*ListPostsResponse, error)
 }
 
@@ -106,7 +106,7 @@ func (UnimplementedGoNewsServiceServer) NewsFullDetailed(context.Context, *OneNe
 func (UnimplementedGoNewsServiceServer) NewsShortDetailed(context.Context, *OneNewsRequest) (*OnePostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NewsShortDetailed not implemented")
 }
-func (UnimplementedGoNewsServiceServer) FilterNews(context.Context, *FilterNewsRequest) (*PostsResponse, error) {
+func (UnimplementedGoNewsServiceServer) FilterNews(context.Context, *FilterNewsRequest) (*ListPostsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FilterNews not implemented")
 }
 func (UnimplementedGoNewsServiceServer) ListNews(context.Context, *ListPostsRequest) (*ListPostsResponse, error) {

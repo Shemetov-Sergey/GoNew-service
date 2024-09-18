@@ -8,7 +8,7 @@ service GoNewsService {
   rpc Posts(PostsRequest) returns (PostsResponse) {}
   rpc NewsFullDetailed(OneNewsRequest) returns (OnePostResponse) {}
   rpc NewsShortDetailed(OneNewsRequest) returns (OnePostResponse) {}
-  rpc FilterNews(FilterNewsRequest) returns (PostsResponse) {}
+  rpc FilterNews(FilterNewsRequest) returns (ListPostsResponse) {}
   rpc ListNews(ListPostsRequest) returns (ListPostsResponse) {}
 }
 
@@ -21,7 +21,10 @@ message OneNewsRequest {
 }
 
 message FilterNewsRequest {
+  int64  user_id = 1;
   string filterValue = 2;
+   int32 page_size = 3;
+  int32 page = 4;
 }
 
 message Post {

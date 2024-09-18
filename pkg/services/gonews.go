@@ -5,6 +5,7 @@ import (
 	"GoNew-service/pkg/pb"
 	"GoNew-service/pkg/storage"
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -46,22 +47,6 @@ func (s *Server) NewsFullDetailed(ctx context.Context, req *pb.OneNewsRequest) (
 	}, nil
 }
 
-func (s *Server) FilterNews(ctx context.Context, req *pb.FilterNewsRequest) (*pb.PostsResponse, error) {
-	news, err := s.H.FilterNews(req.FilterValue)
-
-	if err != nil {
-		return &pb.PostsResponse{
-			Status: http.StatusNotFound,
-			Error:  err.Error(),
-		}, nil
-	}
-
-	return &pb.PostsResponse{
-		Status: http.StatusOK,
-		Posts:  news,
-	}, nil
-}
-
 func (s *Server) NewsShortDetailed(ctx context.Context, req *pb.OneNewsRequest) (*pb.OnePostResponse, error) {
 	news, err := s.H.OneNews(req.NewsId)
 
@@ -80,6 +65,67 @@ func (s *Server) NewsShortDetailed(ctx context.Context, req *pb.OneNewsRequest) 
 	return &pb.OnePostResponse{
 		Status: http.StatusOK,
 		Posts:  news,
+	}, nil
+}
+
+func (s *Server) FilterNews(ctx context.Context, req *pb.FilterNewsRequest) (*pb.ListPostsResponse, error) {
+	paginationObject, ok := s.P.Sessions[req.UserId]
+
+	if !ok {
+		posts, err := s.H.FilterNews(req.FilterValue)
+		if err != nil {
+			return &pb.ListPostsResponse{
+				Status: http.StatusNotFound,
+				Error:  err.Error(),
+			}, nil
+		}
+		start := time.Now()
+		session := cache.NewSession(start, 5, int64(len(posts)))
+		s.P.AddSession(session, posts, req.UserId)
+		paginationObject = s.P.Sessions[req.UserId]
+	}
+
+	posts := paginationObject.Values
+
+	var postsToShow []*pb.Post
+	var paginationInfo *pb.Pagination
+	var pageSize int32
+	var page int32
+
+	if req.PageSize == 0 {
+		pageSize = 1
+	} else {
+		pageSize = req.PageSize
+	}
+
+	if req.Page > 0 {
+		page = req.Page
+	} else {
+		page = 1
+	}
+
+	if int64(pageSize*page) > int64(len(posts)) {
+		pages := 1
+		paginationInfo = cache.NewsPaginationInfo(int32(pages), 1, int32(len(posts)))
+		postsToShow = posts[0 : int64(len(posts))-1]
+	} else {
+		basePages := int32(len(posts)) / pageSize
+		lastPage := 0
+		if int32(len(posts))%pageSize > 0 {
+			lastPage++
+		}
+		pages := basePages + int32(lastPage)
+		currentOffset := (page - 1) * pageSize
+		paginationInfo = cache.NewsPaginationInfo(pages, page, pageSize)
+		postsToShow = posts[currentOffset : currentOffset+pageSize]
+	}
+
+	fmt.Printf("paginationInfo %v\n", paginationInfo)
+
+	return &pb.ListPostsResponse{
+		Status:         http.StatusOK,
+		PaginationInfo: paginationInfo,
+		Posts:          postsToShow,
 	}, nil
 }
 

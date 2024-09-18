@@ -1,6 +1,6 @@
 package storage
 
-import "GoNew-service/pkg/pb"
+import "github.com/Shemetov-Sergey/GoNew-service/pkg/pb/gonews"
 
 type RawPost struct {
 	Title   string `xml:"title"`       // заголовок публикации
@@ -19,10 +19,10 @@ type Post struct {
 }
 
 type PostsInterface interface {
-	Posts(countPosts int) ([]*pb.Post, error)                                // получение всех новостей
-	OneNews(newsId int64) (*pb.Post, error)                                  // получение одной новости по newsId
+	Posts(countPosts int) ([]*gonews.Post, error)                            // получение всех новостей
+	OneNews(newsId int64) (*gonews.Post, error)                              // получение одной новости по newsId
 	AddPost(Post) error                                                      // создание новой новости
 	RunInsertPosts()                                                         // Добавление новости из канала от RSS
-	FilterNews(filterTitle string) ([]*pb.Post, error)                       //Получение новости с определенными темами
+	FilterNews(filterTitle string) ([]*gonews.Post, error)                   //Получение новости с определенными темами
 	GetLastPubDateForSources(sourceSlice []string) (map[string]int64, error) // Получение словаря последних данным по источникам RSS
 }

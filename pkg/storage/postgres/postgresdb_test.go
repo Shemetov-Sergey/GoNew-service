@@ -1,13 +1,14 @@
 package postgres
 
 import (
-	"GoNew-service/pkg/storage"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/storage"
 
 	"github.com/joho/godotenv"
 )

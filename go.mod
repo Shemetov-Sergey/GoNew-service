@@ -1,4 +1,4 @@
-module GoNew-service
+module github.com/Shemetov-Sergey/GoNew-service
 
 go 1.23.1
 

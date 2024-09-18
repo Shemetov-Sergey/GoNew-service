@@ -1,11 +1,12 @@
 package rss
 
 import (
-	"GoNew-service/pkg/storage"
 	"log"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/storage"
 )
 
 func readFromPostsChan(postsChan chan storage.Post) {

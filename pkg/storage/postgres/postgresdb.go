@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	"GoNew-service/pkg/pb"
-	"GoNew-service/pkg/storage"
 	"context"
 
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/pb/gonews"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -29,7 +29,7 @@ func New(ctx context.Context, constr string, posts chan storage.Post, errChan ch
 }
 
 // Posts возвращает указанное в переменной countPosts количество записей из базы данных
-func (pg *Storage) Posts(countPosts int) ([]*pb.Post, error) {
+func (pg *Storage) Posts(countPosts int) ([]*gonews.Post, error) {
 
 	query := `SELECT id, title, content, pub_time, link, source_link FROM posts ORDER BY pub_time DESC LIMIT $1;`
 	rows, rowsErr := pg.Db.Query(context.Background(), query, countPosts)
@@ -39,10 +39,10 @@ func (pg *Storage) Posts(countPosts int) ([]*pb.Post, error) {
 		return nil, rowsErr
 	}
 
-	var posts []*pb.Post
+	var posts []*gonews.Post
 
 	for rows.Next() {
-		var post pb.Post
+		var post gonews.Post
 		err := rows.Scan(
 			&post.ID,
 			&post.Title,
@@ -64,11 +64,11 @@ func (pg *Storage) Posts(countPosts int) ([]*pb.Post, error) {
 }
 
 // OneNews возвращает одну новость по newsId
-func (pg *Storage) OneNews(newsId int64) (*pb.Post, error) {
+func (pg *Storage) OneNews(newsId int64) (*gonews.Post, error) {
 	query := `SELECT id, title, content, pub_time, link, source_link FROM posts WHERE id=$1;`
 	row := pg.Db.QueryRow(context.Background(), query, newsId)
 
-	var post pb.Post
+	var post gonews.Post
 
 	err := row.Scan(
 		&post.ID,
@@ -87,7 +87,7 @@ func (pg *Storage) OneNews(newsId int64) (*pb.Post, error) {
 	return &post, nil
 }
 
-func (pg *Storage) FilterNews(filterTitle string) ([]*pb.Post, error) {
+func (pg *Storage) FilterNews(filterTitle string) ([]*gonews.Post, error) {
 	queryParameter := "%" + filterTitle + "%"
 	query := `SELECT id, title, content, pub_time, link, source_link FROM posts WHERE title ILIKE $1;`
 	rows, rowsErr := pg.Db.Query(context.Background(), query, queryParameter)
@@ -97,10 +97,10 @@ func (pg *Storage) FilterNews(filterTitle string) ([]*pb.Post, error) {
 		return nil, rowsErr
 	}
 
-	var posts []*pb.Post
+	var posts []*gonews.Post
 
 	for rows.Next() {
-		var post pb.Post
+		var post gonews.Post
 		err := rows.Scan(
 			&post.ID,
 			&post.Title,

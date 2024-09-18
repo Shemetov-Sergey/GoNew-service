@@ -1,19 +1,23 @@
 package main
 
 import (
-	"GoNew-service/pkg/cache"
-	"GoNew-service/pkg/config"
-	"GoNew-service/pkg/middleware"
-	"GoNew-service/pkg/pb"
-	"GoNew-service/pkg/rss"
-	"GoNew-service/pkg/services"
-	"GoNew-service/pkg/storage"
-	"GoNew-service/pkg/storage/postgres"
 	"context"
 	"fmt"
+
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/cache"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/client"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/config"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/middleware"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/pb/gonews"
+
 	"log"
 	"net"
 	"time"
+
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/rss"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/services"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/storage"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/storage/postgres"
 
 	"google.golang.org/grpc"
 )
@@ -57,10 +61,12 @@ func main() {
 	db.RunInsertPosts()
 
 	pc := cache.NewPaginationCache()
+	commentCli := client.InitServiceClient(&c)
 
 	s := services.Server{
 		H: db,
 		P: pc,
+		C: commentCli,
 	}
 
 	lis, err := net.Listen("tcp", c.Port)
@@ -77,7 +83,7 @@ func main() {
 		),
 	)
 
-	pb.RegisterGoNewsServiceServer(grpcServer, &s)
+	gonews.RegisterGoNewsServiceServer(grpcServer, &s)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalln("Failed to serve:", err)

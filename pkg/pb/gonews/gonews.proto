@@ -2,11 +2,13 @@ syntax = "proto3";
 
 package gonews;
 
-option go_package = "./pkg/pb";
+option go_package = "github.com/RTS-1989/go-news-svc/pkb/pb/gonews";
+
+import "comment/comment.proto";
 
 service GoNewsService {
   rpc Posts(PostsRequest) returns (PostsResponse) {}
-  rpc NewsFullDetailed(OneNewsRequest) returns (OnePostResponse) {}
+  rpc NewsFullDetailed(OneNewsRequest) returns (DetailedNewsResponse) {}
   rpc NewsShortDetailed(OneNewsRequest) returns (OnePostResponse) {}
   rpc FilterNews(FilterNewsRequest) returns (ListPostsResponse) {}
   rpc ListNews(ListPostsRequest) returns (ListPostsResponse) {}
@@ -66,4 +68,11 @@ message ListPostsResponse {
   string error = 2;
   Pagination paginationInfo = 3;
   repeated Post posts = 4;
+  }
+
+message DetailedNewsResponse {
+  int64 status = 1;
+  string error = 2;
+  gonews.Post post = 3;
+  repeated comment.Comment comments = 4;
 }

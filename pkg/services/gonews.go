@@ -1,52 +1,60 @@
 package services
 
 import (
-	"GoNew-service/pkg/cache"
-	"GoNew-service/pkg/pb"
-	"GoNew-service/pkg/storage"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/cache"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/pb/comment"
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/pb/gonews"
+
 	"context"
 	"net/http"
 	"time"
+
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/storage"
 )
 
 type Server struct {
 	H storage.PostsInterface
 	P *cache.PaginationCache
+	C comment.CommentServiceClient
 }
 
-func (s *Server) Posts(ctx context.Context, req *pb.PostsRequest) (*pb.PostsResponse, error) {
+func (s *Server) Posts(ctx context.Context, req *gonews.PostsRequest) (*gonews.PostsResponse, error) {
 	news, err := s.H.Posts(int(req.NewsCountGet))
 
 	if err != nil {
-		return &pb.PostsResponse{
+		return &gonews.PostsResponse{
 			Status: http.StatusNotFound,
 			Error:  err.Error(),
 		}, nil
 	}
 
-	return &pb.PostsResponse{
+	return &gonews.PostsResponse{
 		Status: http.StatusOK,
 		Posts:  news,
 	}, nil
 }
 
-func (s *Server) NewsFullDetailed(ctx context.Context, req *pb.OneNewsRequest) (*pb.OnePostResponse, error) {
-	news, err := s.H.OneNews(req.NewsId)
+func (s *Server) NewsFullDetailed(ctx context.Context, req *gonews.OneNewsRequest) (*gonews.DetailedNewsResponse, error) {
+	news, err := s.H.OneNews(int64(req.NewsId))
 
 	if err != nil {
-		return &pb.OnePostResponse{
+		return &gonews.DetailedNewsResponse{
 			Status: http.StatusNotFound,
 			Error:  err.Error(),
 		}, nil
 	}
 
-	return &pb.OnePostResponse{
-		Status: http.StatusOK,
-		Posts:  news,
+	r := comment.CommentsByNewsRequest{NewsId: uint64(req.NewsId)}
+	comments, err := s.C.CommentsByNews(ctx, &r)
+
+	return &gonews.DetailedNewsResponse{
+		Status:   http.StatusOK,
+		Post:     news,
+		Comments: comments.Comments,
 	}, nil
 }
 
-func (s *Server) NewsShortDetailed(ctx context.Context, req *pb.OneNewsRequest) (*pb.OnePostResponse, error) {
+func (s *Server) NewsShortDetailed(ctx context.Context, req *gonews.OneNewsRequest) (*gonews.OnePostResponse, error) {
 	news, err := s.H.OneNews(req.NewsId)
 
 	if len(news.Content) > 200 {
@@ -55,25 +63,25 @@ func (s *Server) NewsShortDetailed(ctx context.Context, req *pb.OneNewsRequest) 
 	}
 
 	if err != nil {
-		return &pb.OnePostResponse{
+		return &gonews.OnePostResponse{
 			Status: http.StatusNotFound,
 			Error:  err.Error(),
 		}, nil
 	}
 
-	return &pb.OnePostResponse{
+	return &gonews.OnePostResponse{
 		Status: http.StatusOK,
 		Posts:  news,
 	}, nil
 }
 
-func (s *Server) FilterNews(ctx context.Context, req *pb.FilterNewsRequest) (*pb.ListPostsResponse, error) {
+func (s *Server) FilterNews(ctx context.Context, req *gonews.FilterNewsRequest) (*gonews.ListPostsResponse, error) {
 	paginationObject, ok := s.P.Sessions[req.UserId]
 
 	if !ok {
 		posts, err := s.H.FilterNews(req.FilterValue)
 		if err != nil {
-			return &pb.ListPostsResponse{
+			return &gonews.ListPostsResponse{
 				Status: http.StatusNotFound,
 				Error:  err.Error(),
 			}, nil
@@ -86,8 +94,8 @@ func (s *Server) FilterNews(ctx context.Context, req *pb.FilterNewsRequest) (*pb
 
 	posts := paginationObject.Values
 
-	var postsToShow []*pb.Post
-	var paginationInfo *pb.Pagination
+	var postsToShow []*gonews.Post
+	var paginationInfo *gonews.Pagination
 	var pageSize int32
 	var page int32
 
@@ -119,20 +127,20 @@ func (s *Server) FilterNews(ctx context.Context, req *pb.FilterNewsRequest) (*pb
 		postsToShow = posts[currentOffset : currentOffset+pageSize]
 	}
 
-	return &pb.ListPostsResponse{
+	return &gonews.ListPostsResponse{
 		Status:         http.StatusOK,
 		PaginationInfo: paginationInfo,
 		Posts:          postsToShow,
 	}, nil
 }
 
-func (s *Server) ListNews(ctx context.Context, req *pb.ListPostsRequest) (*pb.ListPostsResponse, error) {
+func (s *Server) ListNews(ctx context.Context, req *gonews.ListPostsRequest) (*gonews.ListPostsResponse, error) {
 	paginationObject, ok := s.P.Sessions[req.UserId]
 
 	if !ok {
 		posts, err := s.H.Posts(int(req.NewsCountGet))
 		if err != nil {
-			return &pb.ListPostsResponse{
+			return &gonews.ListPostsResponse{
 				Status: http.StatusNotFound,
 				Error:  err.Error(),
 			}, nil
@@ -146,7 +154,7 @@ func (s *Server) ListNews(ctx context.Context, req *pb.ListPostsRequest) (*pb.Li
 	if req.NewsCountGet != paginationObject.Session.NewsCount {
 		posts, err := s.H.Posts(int(req.NewsCountGet))
 		if err != nil {
-			return &pb.ListPostsResponse{
+			return &gonews.ListPostsResponse{
 				Status: http.StatusNotFound,
 				Error:  err.Error(),
 			}, nil
@@ -158,8 +166,8 @@ func (s *Server) ListNews(ctx context.Context, req *pb.ListPostsRequest) (*pb.Li
 	}
 
 	posts := paginationObject.Values
-	var postsToShow []*pb.Post
-	var paginationInfo *pb.Pagination
+	var postsToShow []*gonews.Post
+	var paginationInfo *gonews.Pagination
 
 	if int64(req.PageSize*req.Page) > req.NewsCountGet {
 		pages := 1
@@ -178,7 +186,7 @@ func (s *Server) ListNews(ctx context.Context, req *pb.ListPostsRequest) (*pb.Li
 		postsToShow = posts[currentOffset : currentOffset+req.PageSize]
 	}
 
-	return &pb.ListPostsResponse{
+	return &gonews.ListPostsResponse{
 		Status:         http.StatusOK,
 		PaginationInfo: paginationInfo,
 		Posts:          postsToShow,

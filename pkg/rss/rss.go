@@ -1,7 +1,6 @@
 package rss
 
 import (
-	"GoNew-service/pkg/storage"
 	"encoding/json"
 	"encoding/xml"
 	"io"
@@ -9,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/Shemetov-Sergey/GoNew-service/pkg/storage"
 
 	strip "github.com/grokify/html-strip-tags-go"
 )

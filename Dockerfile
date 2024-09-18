@@ -16,6 +16,7 @@ WORKDIR /GoNew-service
 
 COPY --from=builder /GoNew-service/main /GoNew-service/main
 COPY --from=builder /GoNew-service/pkg/config/envs/*.env /GoNew-service/
+COPY --from=builder /GoNew-service/config.json /GoNew-service/
 
 RUN chmod +x /GoNew-service/main
 

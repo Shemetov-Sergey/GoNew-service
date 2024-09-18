@@ -5,7 +5,6 @@ import (
 	"GoNew-service/pkg/pb"
 	"GoNew-service/pkg/storage"
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -119,8 +118,6 @@ func (s *Server) FilterNews(ctx context.Context, req *pb.FilterNewsRequest) (*pb
 		paginationInfo = cache.NewsPaginationInfo(pages, page, pageSize)
 		postsToShow = posts[currentOffset : currentOffset+pageSize]
 	}
-
-	fmt.Printf("paginationInfo %v\n", paginationInfo)
 
 	return &pb.ListPostsResponse{
 		Status:         http.StatusOK,

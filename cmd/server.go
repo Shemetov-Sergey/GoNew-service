@@ -69,7 +69,7 @@ func main() {
 		C: commentCli,
 	}
 
-	lis, err := net.Listen("tcp", c.Port)
+	lis, err := net.Listen("tcp", ":"+c.Port)
 
 	if err != nil {
 		log.Fatalln("Failed to listing:", err)

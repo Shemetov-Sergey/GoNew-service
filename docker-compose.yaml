@@ -1,0 +1,26 @@
+version: '3.6'
+
+services:
+
+  GoNew-service:
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/GoNew-service
+    restart: on-failure
+    environment:
+      DEBUG: ${DEBUG}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    expose:
+      - ${PORT}
+    ports:
+      - ${PORT}:${PORT}
+    networks:
+      - main
+
+networks:
+  main:
+    external: true
